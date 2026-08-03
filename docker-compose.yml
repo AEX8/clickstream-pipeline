@@ -5,6 +5,7 @@ services:
     container_name: clickstream-kafka
     ports:
       - "9092:9092"
+      - "9094:9094"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -44,7 +45,7 @@ services:
     image: postgres:16
     container_name: clickstream-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: clickstream
       POSTGRES_PASSWORD: clickstream
