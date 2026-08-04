@@ -1,6 +1,4 @@
 """
-consumers/raw_writer.py
-
 Reads every event off the raw_events topic and persists it, untouched,
 into events_raw. This is the "full fidelity log" consumer — source of
 truth for reprocessing if anything downstream ever needs a redo.
