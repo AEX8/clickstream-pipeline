@@ -4,7 +4,9 @@ Read-only — this API doesn't write anything, all writes happen
 via the Kafka consumers.
 """
 
-from fastapi import FastAPI, Depends
+import asyncio
+import json
+from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy import desc
 from sqlalchemy.orm import Session as DBSession
 
@@ -56,3 +58,44 @@ def latest_funnel(db: DBSession = Depends(get_db)):
         "window_start": latest_window[0],
         "steps": {row.event_type: row.count for row in rows},
     }
+
+@app.websocket("/ws/metrics")
+async def websocket_metrics(websocket: WebSocket):
+    await websocket.accept()
+    last_sent_window = None
+
+    try:
+        while True:
+            db = next(get_db())
+            try:
+                metric = (
+                    db.query(ActiveUsersMetric)
+                    .order_by(desc(ActiveUsersMetric.window_start))
+                    .first()
+                )
+
+                # only push if this is a window we haven't already sent — avoids spamming the client with identical data every poll
+                if metric and metric.window_start != last_sent_window:
+                    last_sent_window = metric.window_start
+
+                    funnel_rows = (
+                        db.query(FunnelMetric)
+                        .filter(FunnelMetric.window_start == metric.window_start)
+                        .all()
+                    )
+
+                    payload = {
+                        "active_user_count": metric.active_user_count,
+                        "event_count": metric.event_count,
+                        "window_start": metric.window_start.isoformat(),
+                        "window_end": metric.window_end.isoformat(),
+                        "funnel": {row.event_type: row.count for row in funnel_rows},
+                    }
+                    await websocket.send_text(json.dumps(payload))
+            finally:
+                db.close()
+
+            await asyncio.sleep(2)  # poll interval — check for a new window every 2s
+
+    except WebSocketDisconnect:
+        print("client disconnected from /ws/metrics")
