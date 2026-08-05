@@ -30,6 +30,7 @@ class Session(Base):
     exit_page: Mapped[str]
     event_count: Mapped[int] = mapped_column(default=0)
     reached_checkout: Mapped[bool] = mapped_column(default=False)  # simple funnel flag
+    last_processed_event_id: Mapped[str | None]  # dedupe guard for idempotent consumer restarts
 
 class ActiveUsersMetric(Base):
     __tablename__ = "active_users_metrics"

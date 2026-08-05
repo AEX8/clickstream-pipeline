@@ -38,12 +38,12 @@ def build_consumer() -> KafkaConsumer:
 
 def upsert_session(db, event: dict) -> None:
     session_id = event["session_id"]
+    event_id = event["event_id"]
     event_time = datetime.fromisoformat(event["timestamp"])
 
     session = db.get(Session, session_id)
 
     if session is None:
-        # first event we've seen for this session — create it
         session = Session(
             session_id=session_id,
             user_id=event["user_id"],
@@ -54,15 +54,22 @@ def upsert_session(db, event: dict) -> None:
             exit_page=event["page_url"],
             event_count=1,
             reached_checkout=(event["event_type"] == "checkout_complete"),
+            last_processed_event_id=event_id,
         )
         db.add(session)
-    else:
-        # session already exists — update the rolling fields
-        session.last_seen_at = event_time
-        session.exit_page = event["page_url"]
-        session.event_count += 1
-        if event["event_type"] == "checkout_complete":
-            session.reached_checkout = True
+        db.commit()
+        return
+
+    # already processed this exact event — a redelivery after a crash, skip it
+    if session.last_processed_event_id == event_id:
+        return
+
+    session.last_seen_at = event_time
+    session.exit_page = event["page_url"]
+    session.event_count += 1
+    session.last_processed_event_id = event_id
+    if event["event_type"] == "checkout_complete":
+        session.reached_checkout = True
 
     db.commit()
 
