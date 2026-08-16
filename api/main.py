@@ -9,12 +9,18 @@ import json
 from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy import desc
 from sqlalchemy.orm import Session as DBSession
-
 from database import get_db
-from models import ActiveUsersMetric, FunnelMetric
+from models import ActiveUsersMetric, FunnelMetric, Session
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Clickstream Analytics API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # vite's dev server origin
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health():
@@ -99,3 +105,25 @@ async def websocket_metrics(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("client disconnected from /ws/metrics")
+
+
+@app.get("/sessions/recent")
+def recent_sessions(limit: int = 20, db: DBSession = Depends(get_db)):
+    sessions = (
+        db.query(Session)
+        .order_by(desc(Session.last_seen_at))
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "session_id": s.session_id[:8],  # truncated for display, full id isn't useful in a table
+            "device": s.device,
+            "entry_page": s.entry_page,
+            "exit_page": s.exit_page,
+            "event_count": s.event_count,
+            "reached_checkout": s.reached_checkout,
+            "last_seen_at": s.last_seen_at,
+        }
+        for s in sessions
+    ]
