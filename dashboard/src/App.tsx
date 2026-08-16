@@ -1,6 +1,7 @@
 import Sidebar from "./components/Sidebar"
 import StatStrip from "./components/StatStrip"
 import { useMetrics } from "../hooks/useMetrics"
+import FunnelChart from "./components/FunnelChart"
 
 function App() {
   const { metrics, connected } = useMetrics()
@@ -30,9 +31,7 @@ function App() {
         />
 
         <main className="p-6">
-          <p className="text-sm text-neutral-500">
-            Funnel visualization will go here.
-          </p>
+          <FunnelChart funnel={metrics?.funnel ?? null} />
         </main>
       </div>
     </div>
