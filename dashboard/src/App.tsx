@@ -1,7 +1,8 @@
 import Sidebar from "./components/Sidebar"
 import StatStrip from "./components/StatStrip"
-import { useMetrics } from "../hooks/useMetrics"
+import { useMetrics } from "./hooks/useMetrics"
 import FunnelChart from "./components/FunnelChart"
+import SessionsTable from "./components/SessionsTable"
 
 function App() {
   const { metrics, connected } = useMetrics()
@@ -30,8 +31,9 @@ function App() {
           conversionRate={conversionRate}
         />
 
-        <main className="p-6">
+        <main className="space-y-8 p-6">
           <FunnelChart funnel={metrics?.funnel ?? null} />
+          <SessionsTable />
         </main>
       </div>
     </div>
