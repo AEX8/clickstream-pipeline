@@ -1,3 +1,5 @@
+<img src="./cs.png" width="300" alt="ClickStream-Pipeline" />
+
 # Clickstream Analytics Pipeline
 
 A real-time streaming data pipeline that ingests simulated web traffic, processes it through Kafka, and serves live metrics to a dashboard — active users, conversion funnel, and recent session activity, all updating in real time.
