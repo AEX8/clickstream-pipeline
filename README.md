@@ -4,7 +4,7 @@
 
 A real-time streaming data pipeline that ingests simulated web traffic, processes it through Kafka, and serves live metrics to a dashboard — active users, conversion funnel, and recent session activity, all updating in real time.
 
-This is the streaming counterpart to my [batch ELT retail analytics pipeline](#) — same "boring, industry-standard tools" philosophy, different paradigm: continuous event-driven processing instead of scheduled batch jobs.
+This is the streaming counterpart to my [batch ELT retail analytics pipeline](https://github.com/AEX8/retail-analytics-pipeline) — same "boring, industry-standard tools" philosophy, different paradigm: continuous event-driven processing instead of scheduled batch jobs.
 
 ## Why Kafka, and why these choices
 
